@@ -2,6 +2,8 @@
 using Card_ns;
 using Profession_ns;
 using System.Collections.Generic;
+using System.Text;
+using System.IO;
 namespace С_test
 {
     class Person : ICloneable, IComparable
@@ -76,9 +78,7 @@ namespace С_test
             int ex = 1;
             while (ex != 0)
             {
-                Console.Write("\n 1 : Create new person \n 2 : Compare person \n 3 : ----\n 4 : Read file\n 5 : Write in file \n 6 : Show all person  \n 7 : Show short info  \n 8 : exit \nEnter number of option : ");
-
-
+                Console.Write("\n 1 : Create new person \n 2 : Compare person \n 3 : Write file\n 4 : Read file\n 5 : Show all person  \n 6 : Show short info  \n 7 : exit \nEnter number of option : ");
                 int choice = Convert.ToInt32(Console.ReadLine());
                 switch (choice)
                 {
@@ -89,21 +89,20 @@ namespace С_test
                         ShowCompare(ref pers_arr);
                         break;
                     case 3:
-
+                        WriteFile(ref pers_arr);
                         break;
                     case 4:
-
+                        ReadFile(ref pers_arr);
                         break;
+                 
                     case 5:
-
-                        break;
-                    case 6:
                         ShowInfo(ref pers_arr);
                         break;
-                    case 7:
+                    case 6:
+                        
                         ShowShortInfo(ref pers_arr);
                         break;
-                    case 8:
+                    case 7:
                         ex = 0;
                         break;
                     default:
@@ -169,6 +168,57 @@ namespace С_test
             Console.Write("Second : ");
             second = Convert.ToInt32(Console.ReadLine());
             arr[first].CompareTo(arr[second]);
+        }
+        // Добавить проверку наличия файла 
+        static void WriteFile(ref List<Person> arr)
+        {
+            using (var tmp = new StreamWriter("base_of_people.txt", true))
+            {
+                foreach (var str in arr)
+                {
+                    tmp.Write($"Name  {str.name}\nAge  {str.age}\nSex  {str.sex}\nProfession  {str.per_prof.type_work}\nExperience  {str.per_prof.exp}\nSalary  {str.per_prof.salary}\nCard  {str.per_card.type}\nNumber card  {str.per_card.number}\n");
+                }
+            }
+        }
+       // Добавить проверку существования файла 
+        static void ReadFile(ref List<Person> arr)
+        {
+            int exp, type_card, salary , num_card;
+            string[] line_read;
+            string name , sex , profession;
+            List<string> file_content = new List<string>();
+            string tmp_str;
+            if (System.IO.File.Exists("base_of_people.txt"))
+            {
+                using (var tmp = new StreamReader("base_of_people.txt"))
+                {
+                    while (!tmp.EndOfStream)
+                    {  
+                        tmp_str = tmp.ReadLine();
+                       
+                        line_read = tmp_str.Split(' ');
+                        file_content.Add(line_read[3]);
+
+                    }
+                    for (int i = 0; i < file_content.Count; i++)
+                    {
+                        name = file_content[i];
+                       int age = Convert.ToInt32(file_content[i + 1]);
+                        sex = file_content[i + 2];
+                        Person tmp_read_pers = new Person(age, name, sex);
+                        profession = file_content[i + 3];
+                        exp = Convert.ToInt32(file_content[i +4]);
+                        salary = Convert.ToInt32(file_content[i + 5]);
+                        tmp_read_pers.per_prof = new Profession(profession, exp, salary);
+                        type_card = Convert.ToInt32(file_content[i + 6]);
+                        num_card = Convert.ToInt32(file_content[i + 7]);
+                        i += 7;
+                        arr.Add(tmp_read_pers);
+                    }
+
+                }
+            }
+            else { Console.WriteLine("File does not exist !"); }
         }
     }
 
