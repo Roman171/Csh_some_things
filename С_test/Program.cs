@@ -4,6 +4,8 @@ using Profession_ns;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 namespace С_test
 {
     class Person : ICloneable, IComparable
@@ -89,10 +91,10 @@ namespace С_test
                         ShowCompare(ref pers_arr);
                         break;
                     case 3:
-                        WriteFile(ref pers_arr);
+                        WriteFileAsync( pers_arr);
                         break;
                     case 4:
-                        ReadFile(ref pers_arr);
+                        ReadFileAsync(pers_arr);
                         break;
                  
                     case 5:
@@ -112,6 +114,7 @@ namespace С_test
 
             }
         }
+        #region     show
         static void ShowInfo(ref List<Person> pers_arr)
         {
             foreach (Person tmp in pers_arr)
@@ -126,7 +129,9 @@ namespace С_test
                 Console.WriteLine($"\n name : {tmp.name} \n sex : {tmp.sex} \n age : {tmp.age}");
             }
         }
+        #endregion
 
+        #region Creater
         static void Creater(ref List<Person> arr)
         {
             Console.Write("Enter name : ");
@@ -152,26 +157,38 @@ namespace С_test
             Console.WriteLine("Enter your salary : ");
             int salary = Convert.ToInt32(Console.ReadLine());
             tmp.per_prof = new Profession(tmp_type_work, exp, salary);
-
-            //  deep clone is working ; 
-            // Person test_clone_method = (Person)tmp.Clone();  
             arr.Add(tmp);
-
         }
+        #endregion
 
         static void ShowCompare(ref List<Person> arr)
         {
-            int first, second;
-            Console.WriteLine("Which member you want to compare ?");
-            Console.Write("Fitsr : ");
-            first = Convert.ToInt32(Console.ReadLine());
-            Console.Write("Second : ");
-            second = Convert.ToInt32(Console.ReadLine());
-            arr[first].CompareTo(arr[second]);
+            if (arr.Count <= 1)
+            {
+                Console.WriteLine("Less then 2 arguments");
+            }
+            else
+            {
+                int first, second;
+                Console.WriteLine("Which member you want to compare ?");
+                Console.Write("Fitsr : ");
+                first = Convert.ToInt32(Console.ReadLine());
+                Console.Write("Second : ");
+                second = Convert.ToInt32(Console.ReadLine());
+                arr[first].CompareTo(arr[second]);
+            }
         }
         // Добавить проверку наличия файла 
+
+        static async Task WriteFileAsync(List<Person> arr)
+        {
+            await Task.Run(() => WriteFile(ref arr));
+        }
+
+
         static void WriteFile(ref List<Person> arr)
         {
+            
             using (var tmp = new StreamWriter("base_of_people.txt", true))
             {
                 foreach (var str in arr)
@@ -180,9 +197,15 @@ namespace С_test
                 }
             }
         }
-       // Добавить проверку существования файла 
+        // Добавить проверку существования файла 
+        static async Task ReadFileAsync(List<Person> arr)
+        {
+            await Task.Run(() => ReadFile(ref arr));
+        }
+
         static void ReadFile(ref List<Person> arr)
         {
+            Thread.Sleep(5000);
             int exp, type_card, salary , num_card;
             string[] line_read;
             string name , sex , profession;
@@ -210,6 +233,7 @@ namespace С_test
                         exp = Convert.ToInt32(file_content[i +4]);
                         salary = Convert.ToInt32(file_content[i + 5]);
                         tmp_read_pers.per_prof = new Profession(profession, exp, salary);
+                        tmp_read_pers.per_card = new Card();
                         type_card = Convert.ToInt32(file_content[i + 6]);
                         num_card = Convert.ToInt32(file_content[i + 7]);
                         i += 7;
@@ -218,7 +242,7 @@ namespace С_test
 
                 }
             }
-            else { Console.WriteLine("File does not exist !"); }
+            else { Console.WriteLine("\nFile does not exist !"); }
         }
     }
 
