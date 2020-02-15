@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Card_ns
 {
+    [Serializable]
     class Card
     {//1- medic 2 - soc 
        public int type { get; set; }

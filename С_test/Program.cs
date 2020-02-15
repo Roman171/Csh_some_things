@@ -2,12 +2,18 @@
 using Card_ns;
 using Profession_ns;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
+
+
 namespace С_test
+
 {
+
+    [Serializable]
     class Person : ICloneable, IComparable
     {
         public static int ID = 0;
@@ -37,7 +43,6 @@ namespace С_test
             clone_pers.per_card.number = this.per_card.number;
 
             return clone_pers;
-
         }
         public int CompareTo(object sec)
         {
@@ -72,6 +77,9 @@ namespace С_test
 
     class Program
     {
+        static BinaryFormatter formatter = new BinaryFormatter();
+        static string[] linq_example = { "123", "qwerty ", "11111111", "1" , "qqqqqq"};
+
         static void Main(string[] args)
         {
             List<Person> pers_arr = new List<Person>();
@@ -80,12 +88,12 @@ namespace С_test
             int ex = 1;
             while (ex != 0)
             {
-                Console.Write("\n 1 : Create new person \n 2 : Compare person \n 3 : Write file\n 4 : Read file\n 5 : Show all person  \n 6 : Show short info  \n 7 : exit \nEnter number of option : ");
+                Console.Write("\n 1 : Exit \n 2 : Compare person \n 3 : Write file  \n 4 : Read file\n 5 : Show all person    \n 6 : Show short info   \n 7 : LINQ example  \n 8 : Create new person  \n 9 : Serialization  \n 10 : Unserialization \n Enter number of option : ");
                 int choice = Convert.ToInt32(Console.ReadLine());
                 switch (choice)
                 {
                     case 1:
-                        Creater(ref pers_arr);
+                        ex = 0;
                         break;
                     case 2:
                         ShowCompare(ref pers_arr);
@@ -105,7 +113,17 @@ namespace С_test
                         ShowShortInfo(ref pers_arr);
                         break;
                     case 7:
-                        ex = 0;
+                        linq_filter();
+                        break;
+                    case 8:
+                        Creater(ref pers_arr);
+                        break;
+                    case 9:
+                       Thread ser_thread = new Thread(new ParameterizedThreadStart(serialization_ex));
+                        ser_thread.Start(pers_arr);
+                        break;
+                    case 10:
+                        unserialization_ex( pers_arr);
                         break;
                     default:
                         Console.WriteLine("Bye");
@@ -171,14 +189,14 @@ namespace С_test
             {
                 int first, second;
                 Console.WriteLine("Which member you want to compare ?");
-                Console.Write("Fitsr : ");
+                Console.Write("First : ");
                 first = Convert.ToInt32(Console.ReadLine());
                 Console.Write("Second : ");
                 second = Convert.ToInt32(Console.ReadLine());
                 arr[first].CompareTo(arr[second]);
             }
         }
-        // Добавить проверку наличия файла 
+        
 
         static async Task WriteFileAsync(List<Person> arr)
         {
@@ -188,16 +206,17 @@ namespace С_test
 
         static void WriteFile(ref List<Person> arr)
         {
-            
+           
             using (var tmp = new StreamWriter("base_of_people.txt", true))
             {
                 foreach (var str in arr)
                 {
-                    tmp.Write($"Name  {str.name}\nAge  {str.age}\nSex  {str.sex}\nProfession  {str.per_prof.type_work}\nExperience  {str.per_prof.exp}\nSalary  {str.per_prof.salary}\nCard  {str.per_card.type}\nNumber card  {str.per_card.number}\n");
+                    tmp.Write($"Name  {str.name}\nAge  {str.age}\nSex  {str.sex}\nProfession  {str.per_prof.type_work}\nExperience  {str.per_prof.exp}\nSalary  {str.per_prof.salary}\nCard  {str.per_card.type}\nNumber_card  {str.per_card.number}\n");
                 }
             }
         }
-        // Добавить проверку существования файла 
+
+
         static async Task ReadFileAsync(List<Person> arr)
         {
             await Task.Run(() => ReadFile(ref arr));
@@ -205,7 +224,7 @@ namespace С_test
 
         static void ReadFile(ref List<Person> arr)
         {
-            Thread.Sleep(5000);
+            
             int exp, type_card, salary , num_card;
             string[] line_read;
             string name , sex , profession;
@@ -218,10 +237,8 @@ namespace С_test
                     while (!tmp.EndOfStream)
                     {  
                         tmp_str = tmp.ReadLine();
-                       
                         line_read = tmp_str.Split(' ');
-                        file_content.Add(line_read[3]);
-
+                        file_content.Add(line_read[2]);
                     }
                     for (int i = 0; i < file_content.Count; i++)
                     {
@@ -244,6 +261,45 @@ namespace С_test
             }
             else { Console.WriteLine("\nFile does not exist !"); }
         }
+
+
+
+      static  void  linq_filter()
+        {
+            Console.Write("\nLINQ array contains : ");
+            foreach (string ex in linq_example)
+            { 
+                Console.Write($"{ex} ");
+            }
+            var selected = from tmp in linq_example where tmp.StartsWith("1")  select tmp;
+            Console.Write("\nSelected start with 1 : ");
+            foreach (string ex in selected)
+            {
+                Console.Write($"{ex} ");
+            }
+        }
+    
+        static void serialization_ex(object arr)
+        {
+            List<Person> tmp = (List<Person>)arr;
+            using (FileStream fs = new FileStream("people.dat", FileMode.OpenOrCreate))
+            {
+                formatter.Serialize(fs, tmp);
+                Console.WriteLine("Объект сериализован");
+            }
+        }
+        static void unserialization_ex(List<Person> arr)
+        {
+            using (FileStream fs = new FileStream("people.dat", FileMode.OpenOrCreate))
+            {
+                List<Person> deserilizePeople = (List<Person>)formatter.Deserialize(fs);
+                foreach (Person p in deserilizePeople)
+                {
+                    Console.WriteLine($"Имя: {p.name} --- Возраст: {p.age}");
+                }
+            }
+        }
+
     }
 
 }

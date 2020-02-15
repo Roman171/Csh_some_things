@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Profession_ns
 {
+    [Serializable]
     class Profession
     {
         public int exp { get; }
