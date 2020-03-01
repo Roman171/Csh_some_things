@@ -16,6 +16,9 @@ namespace С_test
     [Serializable]
     class Person : ICloneable, IComparable
     {
+        public delegate void PersonDelegate(int i);
+        public event PersonDelegate PersonMessage;
+        //PersonMessage += DisplayMessage;
         public static int ID = 0;
         public int age { get; }
         public string name { get; }
@@ -30,10 +33,7 @@ namespace С_test
             this.sex = sex;
             ID++;
         }
-        public Person()
-        {
-            ID++;
-        }
+       
         public object Clone()
         {
             Person clone_pers = new Person(this.age, this.name, this.sex);
@@ -66,15 +66,13 @@ namespace С_test
             return 0;
         }
 
-        public void IdCounte()
-        {
-            Console.WriteLine($"Counet ID : {ID}");
+        public void IdCounter()
+        {          
+            PersonMessage?.Invoke(ID);
         }
     }
 
-
-
-
+   
     class Program
     {
         static BinaryFormatter formatter = new BinaryFormatter();
@@ -88,7 +86,7 @@ namespace С_test
             int ex = 1;
             while (ex != 0)
             {
-                Console.Write("\n 1 : Exit \n 2 : Compare person \n 3 : Write file  \n 4 : Read file\n 5 : Show all person    \n 6 : Show short info   \n 7 : LINQ example  \n 8 : Create new person  \n 9 : Serialization  \n 10 : Unserialization \n Enter number of option : ");
+                Console.Write("\n 1 : Exit \n 2 : Compare person \n 3 : Write file  \n 4 : Read file\n 5 : Show all person    \n 6 : Show short info   \n 7 : LINQ example  \n 8 : Create new person  \n 9 : Serialization  \n 10 : Unserialization \n 11 : Id of each element \n Enter number of option : ");
                 int choice = Convert.ToInt32(Console.ReadLine());
                 switch (choice)
                 {
@@ -125,6 +123,9 @@ namespace С_test
                     case 10:
                         unserialization_ex( pers_arr);
                         break;
+                    case 11:
+                        show_id(ref pers_arr);
+                        break;
                     default:
                         Console.WriteLine("Bye");
                         break;
@@ -135,6 +136,7 @@ namespace С_test
         #region     show
         static void ShowInfo(ref List<Person> pers_arr)
         {
+
             foreach (Person tmp in pers_arr)
             {
                 Console.WriteLine($"\n name : {tmp.name} \n sex : {tmp.sex} \n age : {tmp.age}     \n type of card : {tmp.per_card.type} \n number of card : {tmp.per_card.number} \n type of work : {tmp.per_prof.type_work} \n experience : {tmp.per_prof.exp} \n salary : {tmp.per_prof.salary}");
@@ -149,6 +151,15 @@ namespace С_test
         }
         #endregion
 
+        static void show_id(ref List<Person> pers_arr)
+        {
+            foreach (var tmp in pers_arr)
+            {
+                tmp.IdCounter();
+            }
+        }
+
+
         #region Creater
         static void Creater(ref List<Person> arr)
         {
@@ -159,11 +170,12 @@ namespace С_test
             Console.Write("Enter age : ");
             int tmp_age = Convert.ToInt32(Console.ReadLine());
             Person tmp = new Person(tmp_age, tmp_name, tmp_sex);
+            tmp.PersonMessage += DisplayMessage;
             tmp.per_card = new Card();
             Console.WriteLine("Enter type of card \n 1 - medic card \n 2 - social card ");
             int type_card = Convert.ToInt32(Console.ReadLine());
             tmp.per_card.type = type_card;
-            Console.Write("Enter number of card (4 numberf XX_XX) : ");
+            Console.Write("Enter number of card (4 numberf XXXX) : ");
             int tmp_num = Convert.ToInt32(Console.ReadLine());
             tmp.per_card.number = tmp_num;
             //---------------------PROFESION----------------------//
@@ -196,7 +208,7 @@ namespace С_test
                 arr[first].CompareTo(arr[second]);
             }
         }
-        
+
 
         static async Task WriteFileAsync(List<Person> arr)
         {
@@ -260,6 +272,13 @@ namespace С_test
                 }
             }
             else { Console.WriteLine("\nFile does not exist !"); }
+        }
+
+
+
+        static void DisplayMessage(int Id)
+        {
+            Console.WriteLine($" Number of Persons : {Id}");
         }
 
 
